@@ -2,10 +2,14 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 
 let rawdata = fs.readFileSync('mooncats.json');
-let mooncats = JSON.parse(rawdata);
-let tokensData = [];
-let tokensDataMin = [];
-if(mooncats.length == 0){
+let rawdataMin = fs.readFileSync('mooncats.min.json');
+let tokensData = JSON.parse(rawdata);
+let tokensDataMin = JSON.parse(rawdataMin);
+let totalTokens = 25439;
+console.log('tokensData Count: ', tokensData.length);
+console.log('tokensDataMin Count: ', tokensDataMin.length);
+
+if(totalTokens != tokensData.length && totalTokens !== tokensDataMin.length){
     getTokens(); 
 }
 
@@ -30,7 +34,7 @@ function saveData(tokens, filename){
 
 function getTokens(){
     let lastToken = tokensData[tokensData.length-1];
-    let startID = lastToken ? lastToken.id : 0;
+    let startID = lastToken ? lastToken.details.rescueIndex+1 : 0;
     console.log('Starting at ID: ', startID);
     getNextToken(startID);
 }
@@ -41,15 +45,15 @@ function getNextToken(tokenID){
     fetch(url)
     .then(res => res.json())
     .then(token => {
-        if (token.error){
-        console.log('End: ' + tokenID);
-        setTimeout(()=>{
-            saveData(tokensData, 'mooncats.json');
-        }, 5000);
+        if (tokenID == totalTokens){
+            console.log('End: ' + tokenID);
+            setTimeout(()=>{
+                saveData(tokensData, 'mooncats.json');
+                saveData(tokensDataMin, 'mooncats.min.json');
+            }, 5000);
         } else {
             // Verbose
             tokensData.push(token);
-            saveData(tokensData, 'mooncats.json');
 
             // Minimum
             tokensDataMin.push({
@@ -71,9 +75,15 @@ function getNextToken(tokenID){
                 hue: getValue(token, 'Coat Hue'),
                 saturation: getValue(token, 'Coat Saturation')
             });
-            saveData(tokensDataMin, 'mooncats.min.json');
+            // Save every 1000 just incase we need to start again
+            if(tokenID % 1000 == 0){
+                saveData(tokensData, 'mooncats.json');
+                saveData(tokensDataMin, 'mooncats.min.json');
+            }
             tokenID++;
-            getNextToken(tokenID)
+            setTimeout(()=>{
+                getNextToken(tokenID)
+            }, 200)
         }
     })
     .catch((err) => {
