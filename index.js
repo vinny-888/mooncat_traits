@@ -9,6 +9,12 @@ let totalTokens = 25439;
 console.log('tokensData Count: ', tokensData.length);
 console.log('tokensDataMin Count: ', tokensDataMin.length);
 
+// Used to chunk mooncat.json into 3 pieces
+// chunk(tokensData);
+
+// Used to combine mooncats_x.json files into a single file
+// combine();
+
 if(totalTokens != tokensData.length && totalTokens !== tokensDataMin.length){
     getTokens(); 
 }
@@ -92,4 +98,24 @@ function getNextToken(tokenID){
             getNextToken(tokenID)
         }, 1000)
     });
+}
+
+function combine(){
+    let rawdata0 = fs.readFileSync('mooncats_0.json');
+    let tokensData0 = JSON.parse(rawdata0);
+    let rawdata1 = fs.readFileSync('mooncats_1.json');
+    let tokensData1 = JSON.parse(rawdata1);
+    let rawdata2 = fs.readFileSync('mooncats_2.json');
+    let tokensData2 = JSON.parse(rawdata2);
+
+    let combined = tokensData0.concat(tokensData1).concat(tokensData2);
+    saveData(combined, 'mooncats_combined.json');
+}
+
+function chunk(tokensData){
+    var i,j, temporary, chunk = 8480;
+    for (i = 0,j = tokensData.length; i < j; i += chunk) {
+        temporary = tokensData.slice(i, i + chunk);
+        saveData(temporary, 'mooncats_'+i+'.json');
+    }
 }
