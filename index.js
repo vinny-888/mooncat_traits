@@ -53,7 +53,6 @@ function getNextToken(tokenID){
 
             // Minimum
             tokensDataMin.push({
-                details: token.details,
                 name: token.name,
                 image: token.image,
                 animation_url: token.animation_url,
